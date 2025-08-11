@@ -44,4 +44,4 @@ shift 2 || true
 # -------------------------------
 
 echo "Starting spike sorting with Kilosort 4..."
-python ~/spikeinterface_script.py "$DATA_PATH" --output_path "$OUTPUT_PATH" "$@"
+python spikeinterface_script_legacy.py "$DATA_PATH" --output_path "$OUTPUT_PATH" "$@"
