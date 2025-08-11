@@ -1,0 +1,4 @@
+{
+  "python.defaultInterpreterPath": "/nfs/nhome/live/vplattner/micromamba/envs/si_ks4_env/bin/python",
+  "python.terminal.activateEnvironment": false
+}
