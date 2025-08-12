@@ -99,8 +99,8 @@ root_path = Path("/ceph/akrami/_projects/sound_cat_rat")
 # Define subject/session metadata - these identify the specific recording
 # These variables should be modified for each new dataset you process
 subject = "sub-003_id-LP12_expmtr-lida"  # Subject identifier (animal ID)
-session = "ses-02_date-20250722T125137_dtype-ephys"  # Session identifier with timestamp
-date = "2025-07-22_12-52-42"  # Recording date and time (from Open Ephys)
+session = "ses-03_date-20250723T121952_dtype-ephys"  # Session identifier with timestamp
+date = "2025-07-23_12-21-42"  # Recording date and time (from Open Ephys)
 experiment = "experiment1"  # Experiment name (from Open Ephys)
 
 print("PATH CONFIGURATION")
@@ -196,19 +196,17 @@ if "location" not in raw_recording.get_property_keys():
     print("No channel locations found — extracting from settings.xml")
     
     # Open Ephys stores probe geometry in a settings.xml file
-    # This file contains the x,y coordinates of each electrode
     settings_path = data_path.parent.parent / "settings.xml"
     if not settings_path.exists():
         raise FileNotFoundError(f"❌ Missing settings file: {settings_path}")
 
     print(f"Parsing settings from: {settings_path}")
-    tree = ET.parse(settings_path)  # Parse the XML file
-    root = tree.getroot()  # Get the root element
+    tree = ET.parse(settings_path)
+    root = tree.getroot()
     
     # Extract x,y coordinates for each channel from the XML
     xpos, ypos = [], []
     for ch in range(384):  # Neuropixels 1.0 has 384 channels
-        # Find the electrode position elements in the XML
         x = float(root.find(".//ELECTRODE_XPOS").get(f"CH{ch}"))
         y = float(root.find(".//ELECTRODE_YPOS").get(f"CH{ch}"))
         xpos.append(x)
@@ -217,65 +215,11 @@ if "location" not in raw_recording.get_property_keys():
     # Combine x,y coordinates into a 2D array
     coords = np.column_stack((xpos, ypos))
     
-    # Get the actual channel IDs from the recording
-    # This is important for proper mapping between recording channels and probe contacts
-    recording_channel_ids = raw_recording.get_channel_ids()
-    print(f"Recording has {len(recording_channel_ids)} channels with IDs: {recording_channel_ids[:5]}...")
-    
-    # Create a proper Probe object instead of just setting location property
-    # This provides SpikeInterface with all the metadata it needs
-    print("Creating Neuropixels probe object...")
-    probe = Probe(ndim=2, si_units='um')  # 2D probe with micrometer units
-    probe.set_contacts(positions=coords, shapes='circle', shape_params={'radius': 7})
-    
-    # Use the actual channel IDs from the recording, not generic ones
-    # This ensures proper mapping between recording data and probe geometry
-    if len(recording_channel_ids) == len(coords):
-        probe.set_contact_ids(recording_channel_ids)
-        print(f"✅ Using recording channel IDs: {recording_channel_ids[:5]}...")
-    else:
-        print(f"⚠️  Mismatch: {len(recording_channel_ids)} recording channels vs {len(coords)} probe contacts")
-        # Fallback to generic IDs if there's a mismatch
-        probe.set_contact_ids([f'ch{i}' for i in range(len(coords))])
-        print(f"⚠️  Using generic channel IDs as fallback")
-    
-    # Create ProbeGroup and add the probe
-    # ProbeGroup can contain multiple probes (for multi-shank or multi-probe setups)
-    probe_group = ProbeGroup()
-    probe_group.add_probe(probe)
-    
-    # Attach the probe to the recording
-    # This allows SpikeInterface to use the geometry for sorting and analysis
-    raw_recording.set_probegroup(probe_group)
-    print(f"✅ Created and attached Neuropixels probe with {len(coords)} channels")
+    # Set the location property directly - simple and works
+    raw_recording.set_property("location", coords)
+    print(f"✅ Set probe locations for {len(coords)} channels")
 else:
     print("✅ Probe locations already present")
-
-# Verify probe attachment and ID matching
-# This helps ensure everything is set up correctly
-if hasattr(raw_recording, 'get_probegroup') and raw_recording.get_probegroup() is not None:
-    probe_group = raw_recording.get_probegroup()
-    print(f"✅ Probe group attached with {len(probe_group.probes)} probe(s)")
-    for i, probe in enumerate(probe_group.probes):
-        print(f"   Probe {i}: {len(probe.contact_ids)} contacts, "
-              f"shape: {probe.contact_shapes}")
-        
-        # Check if probe contact IDs match recording channel IDs
-        # This is critical for proper data mapping
-        recording_ids = raw_recording.get_channel_ids()
-        probe_ids = probe.contact_ids
-        
-        if len(recording_ids) == len(probe_ids):
-            if all(rid == pid for rid, pid in zip(recording_ids, probe_ids)):
-                print(f"   ✅ Probe contact IDs match recording channel IDs")
-            else:
-                print(f"   ⚠️  Probe contact IDs don't match recording channel IDs")
-                print(f"      Recording: {recording_ids[:5]}...")
-                print(f"      Probe: {probe_ids[:5]}...")
-        else:
-            print(f"   ⚠️  Length mismatch: {len(recording_ids)} recording channels vs {len(probe_ids)} probe contacts")
-else:
-    print("⚠️  No probe group found - this may cause warnings later")
 
 print("-" * 40)
 
@@ -312,23 +256,21 @@ locations = raw_recording.get_property("location")
 print(f"✅ Variance computed for {len(variances)} channels")
 
 # Create a color normalization for the variance values
-# We use percentiles (5th to 95th) to avoid outliers affecting the color scale
 norm_var = plt.Normalize(
-    vmin=np.percentile(variances, 5),   # 5th percentile as minimum
-    vmax=np.percentile(variances, 95)   # 95th percentile as maximum
+    vmin=np.percentile(variances, 5),
+    vmax=np.percentile(variances, 95)
 )
 
 # Create the plot
-fig, ax = plt.subplots(figsize=(5, 12))  # Tall, narrow figure for probe layout
+fig, ax = plt.subplots(figsize=(5, 12))
 
 # Draw each electrode as a colored rectangle
 for i in range(locations.shape[0]):
-    x, y = locations[i]  # Get electrode position
-    # Create a rectangle representing the electrode (14x14 µm)
+    x, y = locations[i]
     rect = plt.Rectangle(
-        (x - 7, y - 7), 14, 14,  # Centered on electrode position
-        facecolor=plt.cm.viridis(norm_var(variances[i])),  # Color by variance
-        edgecolor='gray', linewidth=0.5  # Gray border
+        (x - 7, y - 7), 14, 14,
+        facecolor=plt.cm.viridis(norm_var(variances[i])),
+        edgecolor='gray', linewidth=0.5
     )
     ax.add_patch(rect)
 
@@ -339,9 +281,9 @@ y_mid = (y_min + y_max) / 2
 ax.axhline(y=y_mid, color='black', linestyle='--', linewidth=0.8)
 
 # Set plot properties
-ax.set_aspect("equal")  # Maintain aspect ratio
-ax.set_xlim(locations[:, 0].min() - 60, locations[:, 0].max() + 30)  # X-axis limits
-ax.set_ylim(y_min - 20, y_max + 20)  # Y-axis limits
+ax.set_aspect("equal")
+ax.set_xlim(locations[:, 0].min() - 60, locations[:, 0].max() + 30)
+ax.set_ylim(y_min - 20, y_max + 20)
 ax.set_xlabel("x (µm)")
 ax.set_ylabel("y (µm)")
 ax.set_title("Neuropixels Probe Layout (Variance Colored)")
@@ -355,6 +297,7 @@ plt.tight_layout()
 plt.savefig(plot_path / "probe_layout_colored.png", dpi=300)
 plt.close()
 print(f"💾 Saved probe layout to: {plot_path / 'probe_layout_colored.png'}")
+
 print("-" * 40)
 
 
