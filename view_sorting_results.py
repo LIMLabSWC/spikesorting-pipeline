@@ -43,7 +43,6 @@ def load_sorting_results(results_path):
     """
     results_path = Path(results_path)
     
-    # Check if required files exist
     sorting_path = results_path / "sorting"
     waveforms_path = results_path / "postprocessing"
     quality_path = results_path / "postprocessing" / "quality_metrics.csv"
@@ -53,17 +52,21 @@ def load_sorting_results(results_path):
     if not waveforms_path.exists():
         raise FileNotFoundError(f"Waveforms folder not found: {waveforms_path}")
     if not quality_path.exists():
-        raise FileNotFoundError(f"Quality metrics file not found: {quality_path}")
+        raise FileNotFoundError(
+            f"Quality metrics file not found: {quality_path}"
+        )
     
-    print(f"Loading sorting results from: {results_path}")
+    print("LOADING SORTING RESULTS")
+    print("-" * 40)
+    print(f"Loading from: {results_path}")
     
-    # Load sorting and waveforms
     sorting = load(sorting_path)
     waveforms = load_waveforms(waveforms_path, sorting=sorting)
     quality_df = pd.read_csv(quality_path)
     
     print(f"Loaded {len(sorting.get_unit_ids())} units")
     print(f"Recording duration: {sorting.get_total_duration():.1f} seconds")
+    print("-" * 40)
     
     return sorting, waveforms, quality_df
 
@@ -77,41 +80,51 @@ def create_plots_directory(results_path):
 
 def print_summary_statistics(sorting, quality_df):
     """Print summary statistics of the sorting results."""
-    print(f"\n=== SPIKE SORTING RESULTS SUMMARY ===")
+    print("SPIKE SORTING RESULTS SUMMARY")
+    print("-" * 40)
     print(f"Total units found: {len(sorting.get_unit_ids())}")
     
-    # Calculate total spikes across all units
-    total_spikes = sum(len(sorting.get_unit_spike_train(unit_id)) for unit_id in sorting.get_unit_ids())
+    total_spikes = sum(
+        len(sorting.get_unit_spike_train(unit_id)) 
+        for unit_id in sorting.get_unit_ids()
+    )
     print(f"Total spikes: {total_spikes}")
     print(f"Recording duration: {sorting.get_total_duration():.1f} seconds")
-    print(f"Mean firing rate: {total_spikes / sorting.get_total_duration():.2f} Hz")
+    mean_rate = total_spikes / sorting.get_total_duration()
+    print(f"Mean firing rate: {mean_rate:.2f} Hz")
     
-    # Warn about short recordings
     if sorting.get_total_duration() < 60:
-        print(f"\n⚠️  WARNING: Short recording ({sorting.get_total_duration():.1f}s)")
+        duration = sorting.get_total_duration()
+        print(f"\n⚠️  WARNING: Short recording ({duration:.1f}s)")
         print("   - Quality metrics may be unreliable")
         print("   - Presence ratio calculations may fail")
         print("   - Consider using longer recordings (2-5 minutes minimum)")
     elif sorting.get_total_duration() < 300:
-        print(f"\n⚠️  NOTE: Relatively short recording ({sorting.get_total_duration():.1f}s)")
+        duration = sorting.get_total_duration()
+        print(f"\n⚠️  NOTE: Relatively short recording ({duration:.1f}s)")
         print("   - Consider using longer recordings for more reliable metrics")
 
-    print(f"\n=== QUALITY METRICS SUMMARY ===")
-    print(f"Mean SNR: {quality_df['snr'].mean():.2f} ± {quality_df['snr'].std():.2f}")
-    print(f"Mean ISI violation rate: {quality_df['isi_violations_ratio'].mean():.3f} ± {quality_df['isi_violations_ratio'].std():.3f}")
+    print("\nQUALITY METRICS SUMMARY")
+    print("-" * 40)
+    snr_mean = quality_df['snr'].mean()
+    snr_std = quality_df['snr'].std()
+    print(f"Mean SNR: {snr_mean:.2f} ± {snr_std:.2f}")
     
-    # Handle potential NaN values in presence ratio
+    isi_mean = quality_df['isi_violations_ratio'].mean()
+    isi_std = quality_df['isi_violations_ratio'].std()
+    print(f"Mean ISI violation rate: {isi_mean:.3f} ± {isi_std:.3f}")
+    
     if 'presence_ratio' in quality_df.columns:
         presence_mean = quality_df['presence_ratio'].mean()
         presence_std = quality_df['presence_ratio'].std()
         if pd.isna(presence_mean):
-            print(f"Mean presence ratio: NaN (check quality metrics)")
+            print("Mean presence ratio: NaN (check quality metrics)")
         else:
-            print(f"Mean presence ratio: {presence_mean:.3f} ± {presence_std:.3f}")
+            print(f"Mean presence ratio: {presence_mean:.3f} ± "
+                  f"{presence_std:.3f}")
     else:
         print("Presence ratio not available in quality metrics")
 
-    # Show units with good quality (handle NaN values)
     if 'presence_ratio' in quality_df.columns:
         good_units = quality_df[
             (quality_df['snr'] > 5) & 
@@ -123,12 +136,15 @@ def print_summary_statistics(sorting, quality_df):
             (quality_df['snr'] > 5) & 
             (quality_df['isi_violations_ratio'] < 0.1)
         ]
-    print(f"High-quality units (SNR>5, ISI<0.1, presence>0.8): {len(good_units)}")
+    print(f"High-quality units (SNR>5, ISI<0.1, presence>0.8): "
+          f"{len(good_units)}")
+    print("-" * 40)
 
 
 def plot_unit_waveforms_figure(waveforms, sorting, plot_path):
     """Plot unit waveforms and templates."""
-    print("Plotting unit waveforms...")
+    print("PLOTTING UNIT WAVEFORMS")
+    print("-" * 40)
     plt.figure(figsize=(15, 10))
     plot_unit_waveforms(
         waveforms,
@@ -141,11 +157,13 @@ def plot_unit_waveforms_figure(waveforms, sorting, plot_path):
     plt.savefig(plot_path / "unit_waveforms.png", dpi=300, bbox_inches="tight")
     plt.close()
     print(f"Saved: {plot_path / 'unit_waveforms.png'}")
+    print("-" * 40)
 
 
 def plot_unit_templates_figure(waveforms, sorting, plot_path):
     """Plot unit templates."""
-    print("Plotting unit templates...")
+    print("PLOTTING UNIT TEMPLATES")
+    print("-" * 40)
     plt.figure(figsize=(12, 8))
     plot_unit_templates(
         waveforms,
@@ -157,11 +175,13 @@ def plot_unit_templates_figure(waveforms, sorting, plot_path):
     plt.savefig(plot_path / "unit_templates.png", dpi=300, bbox_inches="tight")
     plt.close()
     print(f"Saved: {plot_path / 'unit_templates.png'}")
+    print("-" * 40)
 
 
 def plot_raster_figure(sorting, plot_path):
     """Plot raster plot."""
-    print("Plotting raster plot...")
+    print("PLOTTING RASTER PLOT")
+    print("-" * 40)
     plt.figure(figsize=(15, 8))
     plot_rasters(
         sorting,
@@ -173,78 +193,92 @@ def plot_raster_figure(sorting, plot_path):
     plt.savefig(plot_path / "raster_plot.png", dpi=300, bbox_inches="tight")
     plt.close()
     print(f"Saved: {plot_path / 'raster_plot.png'}")
+    print("-" * 40)
 
 
 def plot_quality_metrics_distributions(quality_df, plot_path):
     """Plot quality metrics distributions."""
-    print("Plotting quality metrics distributions...")
+    print("PLOTTING QUALITY METRICS DISTRIBUTIONS")
+    print("-" * 40)
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 
-    # SNR distribution
     snr_data = quality_df['snr'].dropna()
     if len(snr_data) > 0:
-        axes[0, 0].hist(snr_data, bins=20, alpha=0.7, color='skyblue', edgecolor='black')
+        axes[0, 0].hist(snr_data, bins=20, alpha=0.7, color='skyblue', 
+                        edgecolor='black')
         axes[0, 0].set_xlabel('SNR')
         axes[0, 0].set_ylabel('Count')
         axes[0, 0].set_title('SNR Distribution')
-        axes[0, 0].axvline(snr_data.mean(), color='red', linestyle='--', label=f'Mean: {snr_data.mean():.2f}')
+        mean_snr = snr_data.mean()
+        axes[0, 0].axvline(mean_snr, color='red', linestyle='--', 
+                          label=f'Mean: {mean_snr:.2f}')
         axes[0, 0].legend()
     else:
-        axes[0, 0].text(0.5, 0.5, 'No SNR data', ha='center', va='center', transform=axes[0, 0].transAxes)
+        axes[0, 0].text(0.5, 0.5, 'No SNR data', ha='center', va='center', 
+                        transform=axes[0, 0].transAxes)
         axes[0, 0].set_title('SNR Distribution')
 
-    # ISI violations
     isi_data = quality_df['isi_violations_ratio'].dropna()
     if len(isi_data) > 0:
-        axes[0, 1].hist(isi_data, bins=20, alpha=0.7, color='lightcoral', edgecolor='black')
+        axes[0, 1].hist(isi_data, bins=20, alpha=0.7, color='lightcoral', 
+                        edgecolor='black')
         axes[0, 1].set_xlabel('ISI Violations Ratio')
         axes[0, 1].set_ylabel('Count')
         axes[0, 1].set_title('ISI Violations Distribution')
         axes[0, 1].axvline(0.1, color='red', linestyle='--', label='Threshold: 0.1')
         axes[0, 1].legend()
     else:
-        axes[0, 1].text(0.5, 0.5, 'No ISI data', ha='center', va='center', transform=axes[0, 1].transAxes)
+        axes[0, 1].text(0.5, 0.5, 'No ISI data', ha='center', va='center', 
+                        transform=axes[0, 1].transAxes)
         axes[0, 1].set_title('ISI Violations Distribution')
 
-    # Presence ratio
     if 'presence_ratio' in quality_df.columns:
         presence_data = quality_df['presence_ratio'].dropna()
         if len(presence_data) > 0:
-            axes[1, 0].hist(presence_data, bins=20, alpha=0.7, color='lightgreen', edgecolor='black')
+            axes[1, 0].hist(presence_data, bins=20, alpha=0.7, color='lightgreen', 
+                            edgecolor='black')
             axes[1, 0].set_xlabel('Presence Ratio')
             axes[1, 0].set_ylabel('Count')
             axes[1, 0].set_title('Presence Ratio Distribution')
             axes[1, 0].axvline(0.8, color='red', linestyle='--', label='Threshold: 0.8')
             axes[1, 0].legend()
         else:
-            axes[1, 0].text(0.5, 0.5, 'No presence ratio data', ha='center', va='center', transform=axes[1, 0].transAxes)
+            axes[1, 0].text(0.5, 0.5, 'No presence ratio data', ha='center', 
+                            va='center', transform=axes[1, 0].transAxes)
             axes[1, 0].set_title('Presence Ratio Distribution')
     else:
-        axes[1, 0].text(0.5, 0.5, 'Presence ratio not available', ha='center', va='center', transform=axes[1, 0].transAxes)
+        axes[1, 0].text(0.5, 0.5, 'Presence ratio not available', ha='center', 
+                        va='center', transform=axes[1, 0].transAxes)
         axes[1, 0].set_title('Presence Ratio Distribution')
 
-    # Firing rate
     firing_data = quality_df['firing_rate'].dropna()
     if len(firing_data) > 0:
-        axes[1, 1].hist(firing_data, bins=20, alpha=0.7, color='gold', edgecolor='black')
+        axes[1, 1].hist(firing_data, bins=20, alpha=0.7, color='gold', 
+                        edgecolor='black')
         axes[1, 1].set_xlabel('Firing Rate (Hz)')
         axes[1, 1].set_ylabel('Count')
         axes[1, 1].set_title('Firing Rate Distribution')
-        axes[1, 1].axvline(firing_data.mean(), color='red', linestyle='--', label=f'Mean: {firing_data.mean():.2f} Hz')
+        mean_firing = firing_data.mean()
+        axes[1, 1].axvline(mean_firing, color='red', linestyle='--', 
+                          label=f'Mean: {mean_firing:.2f} Hz')
         axes[1, 1].legend()
     else:
-        axes[1, 1].text(0.5, 0.5, 'No firing rate data', ha='center', va='center', transform=axes[1, 1].transAxes)
+        axes[1, 1].text(0.5, 0.5, 'No firing rate data', ha='center', va='center', 
+                        transform=axes[1, 1].transAxes)
         axes[1, 1].set_title('Firing Rate Distribution')
 
     plt.tight_layout()
-    plt.savefig(plot_path / "quality_metrics_distributions.png", dpi=300, bbox_inches="tight")
+    plt.savefig(plot_path / "quality_metrics_distributions.png", dpi=300, 
+                bbox_inches="tight")
     plt.close()
     print(f"Saved: {plot_path / 'quality_metrics_distributions.png'}")
+    print("-" * 40)
 
 
 def plot_unit_locations_figure(waveforms, sorting, plot_path):
     """Plot unit locations on probe."""
-    print("Plotting unit locations on probe...")
+    print("PLOTTING UNIT LOCATIONS")
+    print("-" * 40)
     try:
         plt.figure(figsize=(8, 12))
         plot_unit_locations(
@@ -254,20 +288,16 @@ def plot_unit_locations_figure(waveforms, sorting, plot_path):
         )
         plt.title("Unit Locations on Probe", fontsize=16)
         plt.tight_layout()
-        plt.savefig(plot_path / "unit_locations.png", dpi=300, bbox_inches="tight")
+        plt.savefig(plot_path / "unit_locations.png", dpi=300, 
+                    bbox_inches="tight")
         plt.close()
         print(f"Saved: {plot_path / 'unit_locations.png'}")
     except Exception as e:
-        # Fallback: create a simple scatter plot of unit locations
-        print(f"Could not use plot_unit_locations, creating simple scatter plot: {e}")
+        print(f"⚠️  Could not use plot_unit_locations, creating simple scatter plot: {e}")
         plt.figure(figsize=(8, 12))
-        
-        # Get channel locations from waveforms
         channel_locations = waveforms.get_channel_locations()
         unit_ids = sorting.get_unit_ids()
-        
-        # For each unit, find its peak channel and plot it
-        for unit_id in unit_ids[:min(50, len(unit_ids))]:  # Limit to first 50 units
+        for unit_id in unit_ids[:min(50, len(unit_ids))]:
             try:
                 template = waveforms.get_template(unit_id)
                 peak_channel_idx = np.argmax(np.abs(template))
@@ -276,19 +306,21 @@ def plot_unit_locations_figure(waveforms, sorting, plot_path):
                     plt.scatter(x, y, c='red', s=20, alpha=0.7)
             except:
                 continue
-        
         plt.xlabel("x (µm)")
         plt.ylabel("y (µm)")
         plt.title("Unit Locations on Probe (Simplified)")
         plt.tight_layout()
-        plt.savefig(plot_path / "unit_locations.png", dpi=300, bbox_inches="tight")
+        plt.savefig(plot_path / "unit_locations.png", dpi=300, 
+                    bbox_inches="tight")
         plt.close()
         print(f"Saved: {plot_path / 'unit_locations.png'}")
+    print("-" * 40)
 
 
 def plot_autocorrelograms_figure(sorting, plot_path):
     """Plot autocorrelograms for first few units."""
-    print("Plotting autocorrelograms...")
+    print("PLOTTING AUTOCORRELOGRAMS")
+    print("-" * 40)
     n_units_to_plot = min(8, len(sorting.get_unit_ids()))
     fig, axes = plt.subplots(2, 4, figsize=(16, 8))
     axes = axes.flatten()
@@ -305,23 +337,24 @@ def plot_autocorrelograms_figure(sorting, plot_path):
 
     plt.suptitle("Autocorrelograms", fontsize=16)
     plt.tight_layout()
-    plt.savefig(plot_path / "autocorrelograms.png", dpi=300, bbox_inches="tight")
+    plt.savefig(plot_path / "autocorrelograms.png", dpi=300, 
+                bbox_inches="tight")
     plt.close()
     print(f"Saved: {plot_path / 'autocorrelograms.png'}")
+    print("-" * 40)
 
 
 def print_detailed_results_table(quality_df):
     """Print detailed results table."""
-    print("\n=== DETAILED RESULTS TABLE ===")
+    print("DETAILED RESULTS TABLE")
+    print("-" * 40)
     print("Unit ID | SNR | ISI Violations | Presence Ratio | Firing Rate | Num Spikes")
     print("-" * 70)
 
-    # Check which columns are available
     available_columns = quality_df.columns.tolist()
     
     for _, row in quality_df.iterrows():
         try:
-            # Handle different possible column names
             if 'unit_id' in available_columns:
                 unit_id = row['unit_id']
             elif 'unit' in available_columns:
@@ -335,13 +368,10 @@ def print_detailed_results_table(quality_df):
             firing_rate = row.get('firing_rate', float('nan'))
             num_spikes = row.get('num_spikes', 0)
             
-            # Format the output, handling NaN values
             snr_str = f"{snr:5.2f}" if not pd.isna(snr) else "  NaN"
             isi_str = f"{isi_viol:13.3f}" if not pd.isna(isi_viol) else "          NaN"
             presence_str = f"{presence:13.3f}" if not pd.isna(presence) else "          NaN"
             firing_str = f"{firing_rate:10.2f}" if not pd.isna(firing_rate) else "      NaN"
-            
-            # Handle num_spikes as either int or float
             try:
                 spikes_str = f"{int(num_spikes):9d}"
             except (ValueError, TypeError):
@@ -377,17 +407,11 @@ def main():
     args = parser.parse_args()
     
     try:
-        # Load results
         sorting, waveforms, quality_df = load_sorting_results(args.results_path)
-        
-        # Create plots directory
         plot_path = create_plots_directory(Path(args.results_path))
-        
-        # Print summary statistics
         print_summary_statistics(sorting, quality_df)
         
         if not args.no_plots:
-            # Generate all plots with error handling
             try:
                 plot_unit_waveforms_figure(waveforms, sorting, plot_path)
             except Exception as e:
@@ -419,20 +443,22 @@ def main():
                 print(f"Warning: Could not generate autocorrelograms: {e}")
             
             if args.show_plots:
-                # Show plots interactively
                 plt.show()
         
-        # Print detailed results table
         print_detailed_results_table(quality_df)
         
-        # Print file locations
-        print(f"\n=== FILES SAVED ===")
-        print(f"Quality metrics: {Path(args.results_path) / 'postprocessing' / 'quality_metrics.csv'}")
+        print("FILES SAVED")
+        print("-" * 40)
+        quality_path = Path(args.results_path) / 'postprocessing' / 'quality_metrics.csv'
+        print(f"Quality metrics: {quality_path}")
         print(f"Sorting results: {Path(args.results_path) / 'sorting'}")
         print(f"Waveforms: {Path(args.results_path) / 'postprocessing'}")
         if not args.no_plots:
             print(f"Plots: {plot_path}")
             print(f"\nAll visualization plots have been saved to: {plot_path}")
+        print("=" * 60)
+        print("VISUALIZATION COMPLETED SUCCESSFULLY!")
+        print("=" * 60)
         
     except Exception as e:
         print(f"Error: {e}")
