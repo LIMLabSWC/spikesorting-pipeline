@@ -1,72 +1,94 @@
-# **Spike Sorting Pipeline – Akrami Lab**
+# Spike Sorting Pipeline
 
-Pipeline for spike sorting **Neuropixels** and other high-density recordings using [SpikeInterface](https://spikeinterface.readthedocs.io) and **Kilosort 4**.
-Supports **Open Ephys** and **SpikeGLX** formats.
+Internal Akrami Lab pipeline for spike sorting Neuropixels and other high-density recordings using [SpikeInterface](https://spikeinterface.readthedocs.io) and **Kilosort 4**.
 
+## Quick Start
 
-## **Contents**
+### 1. Setup Environment
+```bash
+# On HPC
+micromamba create -n si_ks4_env -f si_ks4_env.yml
+micromamba activate si_ks4_env
+```
 
-1. Overview of repository files
-2. Environment setup (GPU-ready)
-3. Interactive HPC development
-4. Local development (optional)
-5. Batch processing on HPC
-6. Results viewing and analysis
-7. Data format details
-8. Pipeline features
-9. Known issues
-10. Troubleshooting
+### 2. Run Interactive Pipeline
+```bash
+# Get a compute node
+srun --partition=gpu --gres=gpu:1 --cpus-per-task=8 --mem=50G --pty bash -i
 
+# Run the script
+python spikeinterface_script_interactive.py
+```
 
-## **1. Repository Contents**
+### 3. View Results
+```bash
+python view_sorting_results.py /path/to/sorting/results
+```
 
-This repository includes:
+### 4. Manual Curation (Optional)
+```bash
+# Install Phy
+conda create -n phy2 -y python=3.11 cython dask h5py joblib matplotlib numpy pillow pip pyopengl pyqt pyqtwebengine pytest python qtconsole requests responses scikit-learn scipy traitlets
+conda activate phy2
+pip install git+https://github.com/cortex-lab/phy.git
 
-| File                                   | Purpose                                                      |
-| -------------------------------------- | ------------------------------------------------------------ |
-| `spikeinterface_script_interactive.py` | Step-by-step testing and development in VS Code              |
-| `spikeinterface_batch.py`              | Large-scale spike sorting jobs on HPC                        |
-| `view_sorting_results.py`              | Analyze and visualize sorting results                        |
-| `si_ks4_env.yml`                       | Environment file for GPU-accelerated sorting with Kilosort 4 |
+# Launch GUI
+cd /path/to/sorting/results
+phy template-gui params.py
+```
 
+## What's Included
 
-## **2. Environment Setup**
+- **Interactive script** (`spikeinterface_script_interactive.py`) for step-by-step testing
+- **Batch processing** (`spikeinterface_batch.py`) for large datasets
+- **Results viewer** (`view_sorting_results.py`) for analysis and plots
+- **Environment file** (`si_ks4_env.yml`) with all dependencies
+- **SLURM script** (`run_spikeinterface.sh`) for HPC submission
 
-**Goal:** Install all dependencies for SpikeInterface + Kilosort 4, ready for GPU use.
+## Output Structure
 
-### **2.1 Create the Conda Environment**
+```
+output_path/
+├── sorting/           # Kilosort 4 output
+├── postprocessing/    # Waveforms and quality metrics
+│   └── quality_metrics.csv
+└── plots/            # Visualization plots
+    ├── unit_waveforms.png
+    ├── raster_plot.png
+    └── ...
+```
 
+---
+
+## Detailed Documentation
+
+### Environment Setup
+
+The pipeline requires a Python environment with SpikeInterface, Kilosort 4, and related dependencies.
+
+**Installation:**
 ```bash
 micromamba create -n si_ks4_env -f si_ks4_env.yml
 micromamba activate si_ks4_env
 ```
 
-**Included packages:**
+**Key dependencies:**
+- SpikeInterface (latest)
+- Kilosort 4 (via SpikeInterface)
+- CUDA toolkit (for GPU acceleration)
+- Other dependencies for Open Ephys and SpikeGLX reading
 
-| Package                            | Purpose                                                                             |
-| ---------------------------------- | ----------------------------------------------------------------------------------- |
-| Python 3.11                        | Base language                                                                       |
-| SpikeInterface 0.103.0             | Core spike sorting tools (core, extractors, preprocessors, sorters, qualitymetrics) |
-| Kilosort 4.1.0                     | GPU-accelerated sorter                                                              |
-| probeinterface                     | Probe geometry handling                                                             |
-| matplotlib, numpy                  | Plotting and analysis                                                               |
-| CUDA toolkit                       | GPU sorting                                                                         |
-| Open Ephys & SpikeGLX dependencies | Data loading                                                                        |
+### Interactive Development on HPC
 
+The interactive pipeline is designed for **step-by-step testing and debugging** 
+of spike sorting workflows. **Recommended approach**: Run on HPC for GPU 
+acceleration and better performance.
 
-## **3. Interactive Development on HPC**
+#### Setup for HPC Development
 
-**Goal:** Use the interactive pipeline for step-by-step GPU-accelerated spike sorting. Recommended for testing and debugging.
+1. **Install the Remote-SSH extension** in VS Code.
 
-
-### **3.1 HPC Setup**
-
-1. **Install Remote-SSH extension in VS Code**
-
-   * Extensions → Search "Remote - SSH" → Install.
-
-2. **Configure SSH access**
-   Add to `~/.ssh/config`:
+2. **Configure SSH access** by adding your HPC login to `~/.ssh/config`:
 
    ```ssh
    Host bastion
@@ -79,70 +101,154 @@ micromamba activate si_ks4_env
        ProxyJump bastion
    ```
 
-5. **Clone the repository**
+3. **Install the environment** on HPC:
+   ```bash
+   micromamba create -n si_ks4_env -f si_ks4_env.yml
+   ```
 
+4. **Clone the repository**:
    ```bash
    git clone git@github.com:LIMLabSWC/spikesorting-pipeline.git
    cd spikesorting-pipeline
    ```
 
-4. **Install environment on HPC**
-
+5. **Request a compute node** for GPU-accelerated processing:
    ```bash
-   micromamba create -n si_ks4_env -f si_ks4_env.yml
-   ```
-
-5. **Request a GPU compute node**
-   **For testing**:
-
-   ```bash
+   # Typical command for testing:
    srun --partition=gpu --gres=gpu:1 --cpus-per-task=8 --mem=50G --pty bash -i
+   
+   # For production runs, adjust resources as needed:
+   # srun --partition=gpu --gres=gpu:1 --cpus-per-task=16 --mem=100G --pty bash -i
    ```
 
-6. **Activate environment inside compute node**
-
+6. **Activate the environment** in your compute node session:
    ```bash
    micromamba activate si_ks4_env
    ```
 
+#### Running the Interactive Script
 
-### **3.2 Running the Interactive Script**
+7. **Connect via VS Code**:
+   * Press `F1` → "Remote-SSH: Connect to Host..."
+   * Choose `hpc2` (or your configured host)
+   * Enter your password
+   * Wait for the connection to establish
 
-1. **Connect to HPC via VS Code**
+8. **Open the repository**:
+   * Once connected, open this repository folder from the HPC filesystem
+   * Navigate to `/nfs/nhome/live/vplattner/spikesorting-pipeline`
 
-   * Press `F1` → “Remote-SSH: Connect to Host…” → Select `hpc2`
-   * Enter password → Wait for connection
+9. **Configure the Python interpreter**:
+   * Press `Ctrl+Shift+P` → "Python: Select Interpreter"
+   * Choose the interpreter from your activated environment:
+     `/nfs/nhome/live/vplattner/micromamba/envs/si_ks4_env/bin/python`
 
-2. **Open repository folder on HPC**
-   Path: `/nfs/nhome/live/vplattner/spikesorting-pipeline`
+10. **Run the interactive script**:
+    * Open `spikeinterface_script_interactive.py`
+    * Run cells individually using `Shift+Enter` or the "Run Cell" button
+    * The script will execute on the compute node with GPU acceleration
 
-3. **Select Python interpreter**
-   `Ctrl+Shift+P` → “Python: Select Interpreter” →
-   `/nfs/nhome/live/vplattner/micromamba/envs/si_ks4_env/bin/python`
+**Note**: Make sure your compute node session remains active while working in VS Code. If the session expires, you'll need to request a new compute node and reconnect.
 
-4. **Run the script interactively**
+#### Local Development (Alternative)
 
-   * Open `spikeinterface_script_interactive.py`
-   * Run cells with `Shift+Enter`
-   * Runs on GPU inside compute node
-
-**Note:** Keep your compute node session active. If it expires, request a new node and reconnect.
-
-
-## **4. Local Development (Optional)**
-
-**Goal:** Run the interactive pipeline on your local machine (requires GPU + CUDA).
+**For local development** (requires GPU and CUDA setup):
 
 ```bash
+# Install environment locally
 micromamba create -n si_ks4_env -f si_ks4_env.yml
 micromamba activate si_ks4_env
+
+# Run the script
 python spikeinterface_script_interactive.py
 ```
 
-**Note:** Modify hardcoded paths in the script for your dataset.
+**Note**: The interactive script is currently configured with hardcoded paths 
+for a specific dataset. You'll need to modify the path variables in the script 
+for your own data.
 
+### Manual Curation with Phy
 
-## **5. Batch Processing on HPC (SLURM)** - *(Not fully tested)*
+**Goal:** Interactive visualization and manual spike sorting curation using [Phy](https://github.com/cortex-lab/phy/).
+
+Phy is an open-source Python library providing a graphical user interface for visualization and manual curation of large-scale electrophysiological data. It's optimized for high-density multielectrode arrays containing hundreds to thousands of recording sites (mostly Neuropixels probes).
+
+#### Installation
+
+**On HPC (recommended):**
+
+```bash
+# Create new conda environment for Phy
+conda create -n phy2 -y python=3.11 cython dask h5py joblib matplotlib numpy pillow pip pyopengl pyqt pyqtwebengine pytest python qtconsole requests responses scikit-learn scipy traitlets
+
+# Activate environment
+conda activate phy2
+
+# Install Phy development version
+pip install git+https://github.com/cortex-lab/phy.git
+
+# Optional: Install klusta/klustakwik2 for Kwik GUI
+pip install klusta klustakwik2
+```
+
+**Alternative installation using environment file:**
+
+```bash
+# If the above method has issues, try the automatic install
+conda env create -f environment.yml
+conda activate phy2
+pip install git+https://github.com/cortex-lab/phy.git
+```
+
+#### Usage
+
+**Launch Phy Template GUI (recommended for Kilosort outputs):**
+
+```bash
+# Navigate to your sorting output directory
+cd /path/to/sorting/results
+
+# Launch the template GUI
+phy template-gui params.py
+```
+
+**Launch from Python script:**
+
+Create a `launch.py` file in your data directory:
+
+```python
+from phy.apps.template import template_gui
+template_gui("params.py")
+```
+
+#### Phy Features
+
+* **Template GUI**: Optimized for datasets sorted with Kilosort and Spyking Circus
+* **Kwik GUI**: Legacy interface for datasets sorted with klusta and klustakwik2
+* **Interactive visualization**: Large-scale electrophysiological data
+* **Manual curation**: Refine spike sorting results
+* **High-density support**: Hundreds to thousands of recording sites
+
+#### Hardware Requirements
+
+* **Storage**: SSD recommended for performance
+* **Graphics**: Recent graphics and OpenGL drivers
+* **No specific GPU requirements** for the GUI itself
+
+#### Troubleshooting
+
+**Common issues:**
+
+* **PyQt5.QtWebEngineWidget error**: Run `pip install PyQtWebEngine`
+* **Mac M-series chips**: Not officially supported, may require workarounds
+* **Upgrading from phy 1**: Don't install phy 1 and phy 2 in the same environment
+
+**For more help:**
+* [Phy Documentation](https://phy.readthedocs.io/)
+* [GitHub Issues](https://github.com/cortex-lab/phy/issues)
+* [Mailing List](https://groups.google.com/forum/#!forum/phy-users)
+
+### Batch Processing on HPC (SLURM)
 
 **Goal:** Submit large dataset jobs to the GPU queue. 
 
@@ -164,8 +270,7 @@ sbatch run_spikeinterface.sh \
 2. Output folder
 3. *(Optional)* flags, e.g. `--show_preprocessing`
 
-
-## **6. Results Viewing and Analysis**
+### Results Viewing and Analysis
 
 **Goal:** Inspect sorting results with summary statistics and plots.
 
@@ -200,7 +305,7 @@ output_path/
     └── autocorrelograms.png
 ```
 
-## **7. Data Format Support**
+### Data Format Support
 
 **Open Ephys:**
 
@@ -212,42 +317,62 @@ output_path/
 * TTLs as extra channel
 * Geometry manual or from metadata
 
-
-## **8. Pipeline Features**
+### Pipeline Features
 
 * **Preprocessing:**
 
-  1. Phase shift correction
-  2. Bandpass filter (300–6000 Hz)
-  3. Common reference
-  4. Probe geometry attachment
+  * Phase shift correction
+  * Bandpass filtering (300-6000 Hz)
+  * Common reference (global median)
 
-* **Sorting:**
+* **Spike sorting:**
 
-  * Kilosort 4 with GPU acceleration
-  * Single-shank grouping
-  * Sparse waveform extraction (75 µm radius)
+  * Kilosort 4 algorithm
+  * GPU-accelerated processing
+  * Automatic channel grouping
 
-* **Metrics:**
+* **Post-processing:**
 
-  * SNR
-  * ISI violations
+  * Waveform extraction
+  * Quality metrics computation
+  * Automatic curation (empty units, excess spikes)
+
+* **Quality metrics:**
+
+  * Signal-to-noise ratio (SNR)
+  * ISI violations ratio
   * Presence ratio
   * Firing rate
-  * Spike count
+  * Number of spikes
 
-## **9. Known Issues**
+### Kilosort GUI Not Required
 
-* Hardcoded paths in interactive script
-* Quality metrics unreliable for < 60 s recordings
-* CUDA version must match cluster (currently 12.2)
-* Large files may require 40 GB+ RAM
+This pipeline uses **Kilosort 4** through SpikeInterface's wrapper, which runs 
+the sorter natively without requiring the MATLAB GUI. The `singularity_image` 
+parameter controls execution:
 
+* `singularity_image=False`: Runs natively (requires local Kilosort installation)
+* `singularity_image=True`: Runs in Singularity container (requires Singularity)
 
-## **10. Troubleshooting**
+### Known Issues and Limitations
 
-* **Missing settings.xml:** Needed for probe geometry
-* **CUDA errors:** Check GPU and CUDA version
-* **Memory errors:** Increase SLURM memory or shorten data
-* **Metric warnings:** Normal for short recordings
+* **Short recordings**: Quality metrics may be unreliable for recordings < 2-5 minutes
+* **Memory usage**: Large datasets may require significant RAM
+* **GPU memory**: Kilosort 4 requires sufficient GPU memory for the dataset size
+* **Path dependencies**: Interactive script has hardcoded paths that need modification
+
+### Troubleshooting
+
+**Common issues:**
+
+* **Import errors**: Ensure the correct Python environment is activated
+* **GPU errors**: Check CUDA installation and GPU memory availability
+* **Path errors**: Verify data paths in the interactive script
+* **Memory errors**: Reduce dataset size or increase allocated memory
+
+**Getting help:**
+
+* Check the [SpikeInterface documentation](https://spikeinterface.readthedocs.io)
+* Review the [Kilosort 4 documentation](https://github.com/MouseLand/Kilosort4)
+* Contact the Akrami Lab for pipeline-specific issues
 
