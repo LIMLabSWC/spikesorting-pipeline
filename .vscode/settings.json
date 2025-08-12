@@ -1,0 +1,18 @@
+{
+  // Force VS Code to use micromamba Python interpreter for this workspace
+  "python.defaultInterpreterPath": "/nfs/nhome/live/vplattner/micromamba/envs/si_ks4_env/bin/python",
+
+  // Prevent VS Code from auto-activating environments in the terminal
+  // (manually activate si_ks4_env in your srun shell)
+  "python.terminal.activateEnvironment": false,
+
+  // Disable VS Code's built-in Git extension to avoid slowdown over SSH/NFS
+  // Use Git commands manually in the terminal
+  "git.enabled": false,
+
+  // Stop VS Code's file watcher from tracking the .git folder
+  // This prevents extra file system load
+  "files.watcherExclude": {
+    "**/.git/**": true
+  }
+}
