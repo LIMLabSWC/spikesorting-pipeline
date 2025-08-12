@@ -4,6 +4,13 @@ Internal Akrami Lab pipeline for spike sorting Neuropixels and other high-densit
 
 ## Quick Start
 
+### 0. Clone Repository
+```bash
+# On HPC, clone to your home directory
+git clone git@github.com:LIMLabSWC/spikesorting-pipeline.git
+cd spikesorting-pipeline
+```
+
 ### 1. Setup Environment
 ```bash
 # On HPC
