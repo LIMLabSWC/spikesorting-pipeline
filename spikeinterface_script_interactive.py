@@ -19,14 +19,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 import traceback
+import rich.traceback
 
-# Lightweight package for nice tracebacks
-try:
-    import rich.traceback
-    rich.traceback.install(show_locals=True)
-    print("✓ Rich traceback installed")
-except ImportError:
-    print("⚠ Rich not available, using standard traceback")
 
 from spikeinterface import extract_waveforms
 from spikeinterface.extractors import read_openephys
@@ -73,8 +67,8 @@ root_path = Path("/ceph/akrami/_projects/sound_cat_rat")
 
 # Define subject/session info
 subject = "sub-003_id-LP12_expmtr-lida"
-session = "ses-04_date-20250724T132332_dtype-ephys"
-date = "2025-07-24_13-24-43"
+session = "ses-02_date-20250722T125137_dtype-ephys"
+date = "2025-07-22_12-52-42"
 experiment = "experiment1"
 
 print("PATH CONFIGURATION")
