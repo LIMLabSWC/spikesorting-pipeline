@@ -47,16 +47,16 @@ from probeinterface.plotting import plot_probe  # Plot probe layouts
 def get_scaled_recording(recording):
     """
     Return scaled copy of recording (float32, in µV) for display.
-    
+
     This function converts the raw recording data to proper voltage units (microvolts)
     for visualization. Raw recordings often have arbitrary units that need to be
     converted to meaningful voltage values.
-    
+
     Parameters:
     -----------
     recording : BaseRecording
         The input recording object
-        
+
     Returns:
     --------
     BaseRecording
@@ -99,8 +99,8 @@ root_path = Path("/ceph/akrami/_projects/sound_cat_rat")
 # Define subject/session metadata - these identify the specific recording
 # These variables should be modified for each new dataset you process
 subject = "sub-003_id-LP12_expmtr-lida"  # Subject identifier (animal ID)
-session = "ses-03_date-20250723T121952_dtype-ephys"  # Session identifier with timestamp
-date = "2025-07-23_12-21-42"  # Recording date and time (from Open Ephys)
+session = "ses-05_date-20250725T114859_dtype-ephys"  # Session folder
+date = "2025-07-25_11-55-01"  # Recording date and time (from Open Ephys)
 experiment = "experiment1"  # Experiment name (from Open Ephys)
 
 print("PATH CONFIGURATION")
@@ -154,7 +154,7 @@ print(f"Recording dtype: {raw_recording.get_dtype()}")  # Data type (usually int
 # Define the time window to extract from the full recording
 # This is useful for testing with a smaller dataset or focusing on specific time periods
 start_time_sec = 20 * 60  # Start at 20 minutes into the recording (1200 seconds)
-duration_sec = 120        # Extract 2 minutes (120 seconds) of data
+duration_sec = 30        # Extract 2 minutes (120 seconds) of data
 fs = raw_recording.get_sampling_frequency()  # Get sampling frequency (usually 30 kHz)
 start_frame = int(start_time_sec * fs)  # Convert time to frame number
 end_frame = int((start_time_sec + duration_sec) * fs)  # Calculate end frame
@@ -194,7 +194,7 @@ from probeinterface.plotting import plot_probe
 # Check if probe geometry is already attached to the recording
 if "location" not in raw_recording.get_property_keys():
     print("No channel locations found — extracting from settings.xml")
-    
+
     # Open Ephys stores probe geometry in a settings.xml file
     settings_path = data_path.parent.parent / "settings.xml"
     if not settings_path.exists():
@@ -203,7 +203,7 @@ if "location" not in raw_recording.get_property_keys():
     print(f"Parsing settings from: {settings_path}")
     tree = ET.parse(settings_path)
     root = tree.getroot()
-    
+
     # Extract x,y coordinates for each channel from the XML
     xpos, ypos = [], []
     for ch in range(384):  # Neuropixels 1.0 has 384 channels
@@ -214,7 +214,7 @@ if "location" not in raw_recording.get_property_keys():
 
     # Combine x,y coordinates into a 2D array
     coords = np.column_stack((xpos, ypos))
-    
+
     # Set the location property directly - simple and works
     raw_recording.set_property("location", coords)
     print(f"✅ Set probe locations for {len(coords)} channels")
@@ -431,7 +431,7 @@ print(f"💾 Saved RMS histogram to: {plot_path / 'rms_histogram.png'}")
 print("-" * 40)
 
 
-# %% 
+# %%
 # ---------------------------
 # Run Kilosort 4
 # ---------------------------
@@ -446,14 +446,14 @@ print("-" * 40)
 # -------------------------------------
 # Assign a default 'group' property if missing
 # -------------------------------------
-# The Kilosort4 wrapper in SpikeInterface expects a 'group' property 
-# for channel grouping. This is mainly used to handle multi-shank probes 
+# The Kilosort4 wrapper in SpikeInterface expects a 'group' property
+# for channel grouping. This is mainly used to handle multi-shank probes
 # or multiple probes by sorting them separately.
-# 
-# In your case (a single-shank Neuropixels probe), all channels come from 
-# one shank, so no grouping is needed. However, Kilosort4 still expects 
+#
+# In your case (a single-shank Neuropixels probe), all channels come from
+# one shank, so no grouping is needed. However, Kilosort4 still expects
 # the 'group' field to exist.
-# 
+#
 # We assign all channels to group 0 using a flat array of zeros.
 print("Setting up channel groups...")
 channel_ids = preprocessed_recording.get_channel_ids()
@@ -472,8 +472,8 @@ print(f"✅ All {len(channel_ids)} channels assigned to group 0")
 # - If True: sorter runs inside a Singularity container.
 #            You don’t need to install MATLAB or Kilosort locally,
 #            but Singularity must be configured correctly.
-# - If False: sorter runs natively — so Kilosort4 must already be 
-#             installed and compiled on your system, and the MATLAB 
+# - If False: sorter runs natively — so Kilosort4 must already be
+#             installed and compiled on your system, and the MATLAB
 #             runtime or CLI must be available.
 #
 # The sorting output will be saved in the given output path.

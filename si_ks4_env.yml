@@ -209,5 +209,7 @@ dependencies:
     - kilosort==4.1.0
     - rich==14.1.0
     - spikeinterface==0.103.0
+    - pre-commit==4.2.0
+
 
 prefix: "/nfs/nhome/live/vplattner/micromamba/envs/si_ks4_env"

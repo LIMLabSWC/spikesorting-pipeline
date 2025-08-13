@@ -87,8 +87,8 @@ micromamba activate si_ks4_env
 
 ### Interactive Development on HPC
 
-The interactive pipeline is designed for **step-by-step testing and debugging** 
-of spike sorting workflows. **Recommended approach**: Run on HPC for GPU 
+The interactive pipeline is designed for **step-by-step testing and debugging**
+of spike sorting workflows. **Recommended approach**: Run on HPC for GPU
 acceleration and better performance.
 
 #### Setup for HPC Development
@@ -123,7 +123,7 @@ acceleration and better performance.
    ```bash
    # Typical command for testing:
    srun --partition=gpu --gres=gpu:1 --cpus-per-task=8 --mem=50G --pty bash -i
-   
+
    # For production runs, adjust resources as needed:
    # srun --partition=gpu --gres=gpu:1 --cpus-per-task=16 --mem=100G --pty bash -i
    ```
@@ -170,8 +170,8 @@ micromamba activate si_ks4_env
 python spikeinterface_script_interactive.py
 ```
 
-**Note**: The interactive script is currently configured with hardcoded paths 
-for a specific dataset. You'll need to modify the path variables in the script 
+**Note**: The interactive script is currently configured with hardcoded paths
+for a specific dataset. You'll need to modify the path variables in the script
 for your own data.
 
 ### Manual Curation with Phy
@@ -257,7 +257,7 @@ template_gui("params.py")
 
 ### Batch Processing on HPC (SLURM)
 
-**Goal:** Submit large dataset jobs to the GPU queue. 
+**Goal:** Submit large dataset jobs to the GPU queue.
 
 * Uses pre-installed HPC modules (see `run_spikeinterface.sh`).
 * No local Conda env needed.
@@ -354,8 +354,8 @@ output_path/
 
 ### Kilosort GUI Not Required
 
-This pipeline uses **Kilosort 4** through SpikeInterface's wrapper, which runs 
-the sorter natively without requiring the MATLAB GUI. The `singularity_image` 
+This pipeline uses **Kilosort 4** through SpikeInterface's wrapper, which runs
+the sorter natively without requiring the MATLAB GUI. The `singularity_image`
 parameter controls execution:
 
 * `singularity_image=False`: Runs natively (requires local Kilosort installation)
@@ -382,4 +382,3 @@ parameter controls execution:
 * Check the [SpikeInterface documentation](https://spikeinterface.readthedocs.io)
 * Review the [Kilosort 4 documentation](https://github.com/MouseLand/Kilosort4)
 * Contact the Akrami Lab for pipeline-specific issues
-
