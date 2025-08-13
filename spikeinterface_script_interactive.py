@@ -13,12 +13,14 @@ for testing and debugging.
 
 # Standard Python libraries for system information and file handling
 import platform  # Get system information (node name, platform, etc.)
-import sys       # Access Python version and system-specific parameters
-import os        # Operating system interface (working directory, environment variables)
-from pathlib import Path  # Object-oriented filesystem paths (better than os.path)
+import sys  # Access Python version and system-specific parameters
+import os  # Operating system interface (working directory, environment variables)
+from pathlib import (
+    Path,
+)  # Object-oriented filesystem paths (better than os.path)
 
 # Scientific computing libraries
-import numpy as np        # Numerical computing - arrays, math operations
+import numpy as np  # Numerical computing - arrays, math operations
 import matplotlib.pyplot as plt  # Plotting library for creating figures
 import xml.etree.ElementTree as ET  # Parse XML files (for Open Ephys settings)
 
@@ -27,18 +29,29 @@ import traceback  # Extract, format and print stack traces
 import rich.traceback  # Pretty traceback formatting (if available)
 
 # SpikeInterface core functionality
-from spikeinterface import extract_waveforms  # Extract spike waveforms from recordings
-from spikeinterface.extractors import read_openephys  # Load Open Ephys data files
+from spikeinterface import (
+    extract_waveforms,
+)  # Extract spike waveforms from recordings
+from spikeinterface.extractors import (
+    read_openephys,
+)  # Load Open Ephys data files
 from spikeinterface.preprocessing import (
-    phase_shift,        # Correct for inter-sample timing shifts
-    bandpass_filter,    # Filter signals to specific frequency range
-    common_reference,   # Remove common noise across channels
-    scale_to_physical_units  # Convert to proper voltage units (µV)
+    phase_shift,  # Correct for inter-sample timing shifts
+    bandpass_filter,  # Filter signals to specific frequency range
+    common_reference,  # Remove common noise across channels
+    scale_to_physical_units,  # Convert to proper voltage units (µV)
 )
 from spikeinterface.sorters import run_sorter  # Run spike sorting algorithms
-from spikeinterface.qualitymetrics import compute_quality_metrics  # Calculate quality metrics
-from spikeinterface import curation  # Manual curation tools (remove bad units/spikes)
-from spikeinterface.widgets import plot_timeseries, plot_traces  # Visualization widgets
+from spikeinterface.qualitymetrics import (
+    compute_quality_metrics,
+)  # Calculate quality metrics
+from spikeinterface import (
+    curation,
+)  # Manual curation tools (remove bad units/spikes)
+from spikeinterface.widgets import (
+    plot_timeseries,
+    plot_traces,
+)  # Visualization widgets
 
 # Probe geometry handling
 from probeinterface.plotting import plot_probe  # Plot probe layouts
@@ -76,7 +89,9 @@ def get_scaled_recording(recording):
 print("=" * 60)
 print("SYSTEM INFORMATION")
 print("=" * 60)
-print(f"Node: {platform.node()}")  # Name of the compute node (important for HPC)
+print(
+    f"Node: {platform.node()}"
+)  # Name of the compute node (important for HPC)
 print(f"Platform: {platform.platform()}")  # Operating system and architecture
 print(f"Python: {sys.version.split()[0]}")  # Python version (should be 3.11)
 print(f"Working directory: {os.getcwd()}")  # Current working directory
@@ -114,8 +129,15 @@ print(f"Experiment: {experiment}")
 # Construct the input data path - this points to the raw Open Ephys recording
 # Open Ephys creates a nested folder structure: Record Node -> Experiment -> Recording
 data_path = (
-    root_path / "rawdata" / subject / session / "ephys" / date
-    / "Record Node 101" / experiment / "recording1"
+    root_path
+    / "rawdata"
+    / subject
+    / session
+    / "ephys"
+    / date
+    / "Record Node 101"
+    / experiment
+    / "recording1"
 )
 
 # Construct the output path - this is where all processed data will be saved
@@ -127,7 +149,9 @@ print(f"📂 Output path: {output_path}")
 
 # Create a subdirectory for plots and ensure it exists
 plot_path = output_path / "plots"
-plot_path.mkdir(parents=True, exist_ok=True)  # Create directory if it doesn't exist
+plot_path.mkdir(
+    parents=True, exist_ok=True
+)  # Create directory if it doesn't exist
 print(f"📂 Plot path: {plot_path}")
 print("-" * 40)
 
@@ -149,13 +173,19 @@ print(f"📂 Loading from: {data_path}")
 # Open Ephys can have multiple streams (e.g., continuous data, events, etc.)
 raw_recording = read_openephys(data_path, stream_id="0")
 print(f"✅ Recording loaded successfully")
-print(f"Recording dtype: {raw_recording.get_dtype()}")  # Data type (usually int16 or float32)
+print(
+    f"Recording dtype: {raw_recording.get_dtype()}"
+)  # Data type (usually int16 or float32)
 
 # Define the time window to extract from the full recording
 # This is useful for testing with a smaller dataset or focusing on specific time periods
-start_time_sec = 20 * 60  # Start at 20 minutes into the recording (1200 seconds)
-duration_sec = 30        # Extract 2 minutes (120 seconds) of data
-fs = raw_recording.get_sampling_frequency()  # Get sampling frequency (usually 30 kHz)
+start_time_sec = (
+    20 * 60
+)  # Start at 20 minutes into the recording (1200 seconds)
+duration_sec = 30  # Extract 2 minutes (120 seconds) of data
+fs = (
+    raw_recording.get_sampling_frequency()
+)  # Get sampling frequency (usually 30 kHz)
 start_frame = int(start_time_sec * fs)  # Convert time to frame number
 end_frame = int((start_time_sec + duration_sec) * fs)  # Calculate end frame
 
@@ -169,8 +199,10 @@ print(f"   Sampling rate: {fs} Hz")
 raw_recording = raw_recording.frame_slice(
     start_frame=start_frame, end_frame=end_frame
 )
-print(f"✅ Trimmed recording to {duration_sec} seconds starting from "
-      f"{start_time_sec}s")
+print(
+    f"✅ Trimmed recording to {duration_sec} seconds starting from "
+    f"{start_time_sec}s"
+)
 print("-" * 40)
 
 
@@ -257,8 +289,7 @@ print(f"✅ Variance computed for {len(variances)} channels")
 
 # Create a color normalization for the variance values
 norm_var = plt.Normalize(
-    vmin=np.percentile(variances, 5),
-    vmax=np.percentile(variances, 95)
+    vmin=np.percentile(variances, 5), vmax=np.percentile(variances, 95)
 )
 
 # Create the plot
@@ -268,9 +299,12 @@ fig, ax = plt.subplots(figsize=(5, 12))
 for i in range(locations.shape[0]):
     x, y = locations[i]
     rect = plt.Rectangle(
-        (x - 7, y - 7), 14, 14,
+        (x - 7, y - 7),
+        14,
+        14,
         facecolor=plt.cm.viridis(norm_var(variances[i])),
-        edgecolor='gray', linewidth=0.5
+        edgecolor="gray",
+        linewidth=0.5,
     )
     ax.add_patch(rect)
 
@@ -278,7 +312,7 @@ for i in range(locations.shape[0]):
 y_coords = locations[:, 1]
 y_min, y_max = y_coords.min(), y_coords.max()
 y_mid = (y_min + y_max) / 2
-ax.axhline(y=y_mid, color='black', linestyle='--', linewidth=0.8)
+ax.axhline(y=y_mid, color="black", linestyle="--", linewidth=0.8)
 
 # Set plot properties
 ax.set_aspect("equal")
@@ -357,8 +391,8 @@ else:
 print("Applying common reference (global median)...")
 preprocessed_recording = common_reference(
     filtered_recording,
-    reference="global",      # Use all channels as reference
-    operator="median",       # Use median instead of mean (more robust to outliers)
+    reference="global",  # Use all channels as reference
+    operator="median",  # Use median instead of mean (more robust to outliers)
     groups=split_channel_ids,  # Channel groups to process separately
 )
 print("✅ Common reference applied")
@@ -389,10 +423,11 @@ plt.ylabel("Depth (µm)")
 plt.title("Preprocessed Signal Map")
 plt.grid(axis="y", linestyle="--", linewidth=0.3, alpha=0.4)
 plt.tight_layout()
-plt.savefig(plot_path / "preprocessing_full.png", dpi=200,
-            bbox_inches="tight")
+plt.savefig(plot_path / "preprocessing_full.png", dpi=200, bbox_inches="tight")
 plt.close()
-print(f"💾 Saved preprocessed signal map to: {plot_path / 'preprocessing_full.png'}")
+print(
+    f"💾 Saved preprocessed signal map to: {plot_path / 'preprocessing_full.png'}"
+)
 print("-" * 40)
 
 
@@ -415,7 +450,7 @@ traces = get_scaled_recording(preprocessed_recording).get_traces(
 if traces.shape[0] != n_channels:
     traces = traces.T
 
-rms_values = np.sqrt(np.mean(traces ** 2, axis=1))
+rms_values = np.sqrt(np.mean(traces**2, axis=1))
 print(f"✅ RMS computed for {len(rms_values)} channels")
 
 print("Creating RMS histogram...")
@@ -482,16 +517,15 @@ print(f"📂 Output directory: {output_path / 'sorting'}")
 print("This may take several minutes...")
 
 sorting = run_sorter(
-    "kilosort4",                             # Sorter name
-    preprocessed_recording,                  # Input recording (already filtered)
-    (output_path / "sorting").as_posix(),    # Output directory for sorting files
-    singularity_image=False,                 # Run sorter natively
-    remove_existing_folder=True              # Overwrite if folder exists
+    "kilosort4",  # Sorter name
+    preprocessed_recording,  # Input recording (already filtered)
+    (output_path / "sorting").as_posix(),  # Output directory for sorting files
+    singularity_image=False,  # Run sorter natively
+    remove_existing_folder=True,  # Overwrite if folder exists
 )
 
 print("✅ Kilosort 4 completed successfully!")
 print("-" * 40)
-
 
 
 # %%
@@ -515,28 +549,28 @@ sorting = sorting.remove_empty_units()
 # Sometimes spike sorters detect the same spike multiple times
 # This step removes duplicate spikes that are too close in time
 print("Removing excess spikes...")
-sorting = curation.remove_excess_spikes(
-    sorting, preprocessed_recording
-)
+sorting = curation.remove_excess_spikes(sorting, preprocessed_recording)
 
 # Step 3: Extract waveforms
 # Extract the actual spike waveforms around each detected spike
 # This is needed for quality metrics and visualization
 print("Extracting waveforms...")
-print("Note: You may see a warning about 'recording will not be persistent on disk' - this is normal for in-memory recordings")
+print(
+    "Note: You may see a warning about 'recording will not be persistent on disk' - this is normal for in-memory recordings"
+)
 
 waveforms = extract_waveforms(
-    preprocessed_recording,                  # Input recording
-    sorting,                                 # Spike sorting results
+    preprocessed_recording,  # Input recording
+    sorting,  # Spike sorting results
     folder=(output_path / "postprocessing").as_posix(),  # Output folder
-    ms_before=2,                            # Extract 2ms before spike peak
-    ms_after=2,                             # Extract 2ms after spike peak
-    max_spikes_per_unit=500,                # Limit spikes per unit (for memory)
-    return_scaled=True,                     # Return in µV units
-    sparse=True,                            # Only extract from nearby channels
-    peak_sign="neg",                        # Look for negative peaks (typical for extracellular)
-    method="radius",                        # Use radius-based channel selection
-    radius_um=75,                           # Extract from channels within 75µm
+    ms_before=2,  # Extract 2ms before spike peak
+    ms_after=2,  # Extract 2ms after spike peak
+    max_spikes_per_unit=500,  # Limit spikes per unit (for memory)
+    return_scaled=True,  # Return in µV units
+    sparse=True,  # Only extract from nearby channels
+    peak_sign="neg",  # Look for negative peaks (typical for extracellular)
+    method="radius",  # Use radius-based channel selection
+    radius_um=75,  # Extract from channels within 75µm
 )
 print("✅ Waveforms extracted successfully")
 print("-" * 40)
@@ -566,12 +600,12 @@ quality_metrics = compute_quality_metrics(waveforms)
 
 # Save the quality metrics to a CSV file for later analysis
 # This file can be loaded in Python, Excel, or other analysis tools
-quality_metrics.to_csv(
-    output_path / "postprocessing" / "quality_metrics.csv"
-)
+quality_metrics.to_csv(output_path / "postprocessing" / "quality_metrics.csv")
 
 print("✅ Quality metrics computed successfully")
-print(f"💾 Metrics saved to: {output_path / 'postprocessing' / 'quality_metrics.csv'}")
+print(
+    f"💾 Metrics saved to: {output_path / 'postprocessing' / 'quality_metrics.csv'}"
+)
 print(f"💾 Plots saved to: {plot_path}")
 print("=" * 60)
 print("PIPELINE COMPLETED SUCCESSFULLY!")

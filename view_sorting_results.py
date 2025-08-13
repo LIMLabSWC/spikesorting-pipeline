@@ -18,8 +18,12 @@ import pandas as pd
 from spikeinterface import load_waveforms
 from spikeinterface.core import load
 from spikeinterface.widgets import (
-    plot_unit_waveforms, plot_unit_templates, plot_rasters,
-    plot_autocorrelograms, plot_crosscorrelograms, plot_unit_locations
+    plot_unit_waveforms,
+    plot_unit_templates,
+    plot_rasters,
+    plot_autocorrelograms,
+    plot_crosscorrelograms,
+    plot_unit_locations,
 )
 
 
@@ -106,38 +110,41 @@ def print_summary_statistics(sorting, quality_df):
 
     print("\nQUALITY METRICS SUMMARY")
     print("-" * 40)
-    snr_mean = quality_df['snr'].mean()
-    snr_std = quality_df['snr'].std()
+    snr_mean = quality_df["snr"].mean()
+    snr_std = quality_df["snr"].std()
     print(f"Mean SNR: {snr_mean:.2f} ± {snr_std:.2f}")
 
-    isi_mean = quality_df['isi_violations_ratio'].mean()
-    isi_std = quality_df['isi_violations_ratio'].std()
+    isi_mean = quality_df["isi_violations_ratio"].mean()
+    isi_std = quality_df["isi_violations_ratio"].std()
     print(f"Mean ISI violation rate: {isi_mean:.3f} ± {isi_std:.3f}")
 
-    if 'presence_ratio' in quality_df.columns:
-        presence_mean = quality_df['presence_ratio'].mean()
-        presence_std = quality_df['presence_ratio'].std()
+    if "presence_ratio" in quality_df.columns:
+        presence_mean = quality_df["presence_ratio"].mean()
+        presence_std = quality_df["presence_ratio"].std()
         if pd.isna(presence_mean):
             print("Mean presence ratio: NaN (check quality metrics)")
         else:
-            print(f"Mean presence ratio: {presence_mean:.3f} ± "
-                  f"{presence_std:.3f}")
+            print(
+                f"Mean presence ratio: {presence_mean:.3f} ± "
+                f"{presence_std:.3f}"
+            )
     else:
         print("Presence ratio not available in quality metrics")
 
-    if 'presence_ratio' in quality_df.columns:
+    if "presence_ratio" in quality_df.columns:
         good_units = quality_df[
-            (quality_df['snr'] > 5) &
-            (quality_df['isi_violations_ratio'] < 0.1) &
-            (quality_df['presence_ratio'] > 0.8)
+            (quality_df["snr"] > 5)
+            & (quality_df["isi_violations_ratio"] < 0.1)
+            & (quality_df["presence_ratio"] > 0.8)
         ]
     else:
         good_units = quality_df[
-            (quality_df['snr'] > 5) &
-            (quality_df['isi_violations_ratio'] < 0.1)
+            (quality_df["snr"] > 5) & (quality_df["isi_violations_ratio"] < 0.1)
         ]
-    print(f"High-quality units (SNR>5, ISI<0.1, presence>0.8): "
-          f"{len(good_units)}")
+    print(
+        f"High-quality units (SNR>5, ISI<0.1, presence>0.8): "
+        f"{len(good_units)}"
+    )
     print("-" * 40)
 
 
@@ -148,9 +155,9 @@ def plot_unit_waveforms_figure(waveforms, sorting, plot_path):
     plt.figure(figsize=(15, 10))
     plot_unit_waveforms(
         waveforms,
-        unit_ids=sorting.get_unit_ids()[:min(12, len(sorting.get_unit_ids()))],
+        unit_ids=sorting.get_unit_ids()[: min(12, len(sorting.get_unit_ids()))],
         plot_templates=True,
-        same_axis=True
+        same_axis=True,
     )
     plt.suptitle("Unit Waveforms and Templates", fontsize=16)
     plt.tight_layout()
@@ -167,8 +174,8 @@ def plot_unit_templates_figure(waveforms, sorting, plot_path):
     plt.figure(figsize=(12, 8))
     plot_unit_templates(
         waveforms,
-        unit_ids=sorting.get_unit_ids()[:min(16, len(sorting.get_unit_ids()))],
-        ncols=4
+        unit_ids=sorting.get_unit_ids()[: min(16, len(sorting.get_unit_ids()))],
+        ncols=4,
     )
     plt.suptitle("Unit Templates", fontsize=16)
     plt.tight_layout()
@@ -186,7 +193,7 @@ def plot_raster_figure(sorting, plot_path):
     plot_rasters(
         sorting,
         time_range=(0, min(60, sorting.get_total_duration())),
-        unit_ids=sorting.get_unit_ids()[:min(20, len(sorting.get_unit_ids()))]
+        unit_ids=sorting.get_unit_ids()[: min(20, len(sorting.get_unit_ids()))],
     )
     plt.suptitle("Spike Raster Plot", fontsize=16)
     plt.tight_layout()
@@ -202,74 +209,124 @@ def plot_quality_metrics_distributions(quality_df, plot_path):
     print("-" * 40)
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 
-    snr_data = quality_df['snr'].dropna()
+    snr_data = quality_df["snr"].dropna()
     if len(snr_data) > 0:
-        axes[0, 0].hist(snr_data, bins=20, alpha=0.7, color='skyblue',
-                        edgecolor='black')
-        axes[0, 0].set_xlabel('SNR')
-        axes[0, 0].set_ylabel('Count')
-        axes[0, 0].set_title('SNR Distribution')
+        axes[0, 0].hist(
+            snr_data, bins=20, alpha=0.7, color="skyblue", edgecolor="black"
+        )
+        axes[0, 0].set_xlabel("SNR")
+        axes[0, 0].set_ylabel("Count")
+        axes[0, 0].set_title("SNR Distribution")
         mean_snr = snr_data.mean()
-        axes[0, 0].axvline(mean_snr, color='red', linestyle='--',
-                          label=f'Mean: {mean_snr:.2f}')
+        axes[0, 0].axvline(
+            mean_snr, color="red", linestyle="--", label=f"Mean: {mean_snr:.2f}"
+        )
         axes[0, 0].legend()
     else:
-        axes[0, 0].text(0.5, 0.5, 'No SNR data', ha='center', va='center',
-                        transform=axes[0, 0].transAxes)
-        axes[0, 0].set_title('SNR Distribution')
+        axes[0, 0].text(
+            0.5,
+            0.5,
+            "No SNR data",
+            ha="center",
+            va="center",
+            transform=axes[0, 0].transAxes,
+        )
+        axes[0, 0].set_title("SNR Distribution")
 
-    isi_data = quality_df['isi_violations_ratio'].dropna()
+    isi_data = quality_df["isi_violations_ratio"].dropna()
     if len(isi_data) > 0:
-        axes[0, 1].hist(isi_data, bins=20, alpha=0.7, color='lightcoral',
-                        edgecolor='black')
-        axes[0, 1].set_xlabel('ISI Violations Ratio')
-        axes[0, 1].set_ylabel('Count')
-        axes[0, 1].set_title('ISI Violations Distribution')
-        axes[0, 1].axvline(0.1, color='red', linestyle='--', label='Threshold: 0.1')
+        axes[0, 1].hist(
+            isi_data, bins=20, alpha=0.7, color="lightcoral", edgecolor="black"
+        )
+        axes[0, 1].set_xlabel("ISI Violations Ratio")
+        axes[0, 1].set_ylabel("Count")
+        axes[0, 1].set_title("ISI Violations Distribution")
+        axes[0, 1].axvline(
+            0.1, color="red", linestyle="--", label="Threshold: 0.1"
+        )
         axes[0, 1].legend()
     else:
-        axes[0, 1].text(0.5, 0.5, 'No ISI data', ha='center', va='center',
-                        transform=axes[0, 1].transAxes)
-        axes[0, 1].set_title('ISI Violations Distribution')
+        axes[0, 1].text(
+            0.5,
+            0.5,
+            "No ISI data",
+            ha="center",
+            va="center",
+            transform=axes[0, 1].transAxes,
+        )
+        axes[0, 1].set_title("ISI Violations Distribution")
 
-    if 'presence_ratio' in quality_df.columns:
-        presence_data = quality_df['presence_ratio'].dropna()
+    if "presence_ratio" in quality_df.columns:
+        presence_data = quality_df["presence_ratio"].dropna()
         if len(presence_data) > 0:
-            axes[1, 0].hist(presence_data, bins=20, alpha=0.7, color='lightgreen',
-                            edgecolor='black')
-            axes[1, 0].set_xlabel('Presence Ratio')
-            axes[1, 0].set_ylabel('Count')
-            axes[1, 0].set_title('Presence Ratio Distribution')
-            axes[1, 0].axvline(0.8, color='red', linestyle='--', label='Threshold: 0.8')
+            axes[1, 0].hist(
+                presence_data,
+                bins=20,
+                alpha=0.7,
+                color="lightgreen",
+                edgecolor="black",
+            )
+            axes[1, 0].set_xlabel("Presence Ratio")
+            axes[1, 0].set_ylabel("Count")
+            axes[1, 0].set_title("Presence Ratio Distribution")
+            axes[1, 0].axvline(
+                0.8, color="red", linestyle="--", label="Threshold: 0.8"
+            )
             axes[1, 0].legend()
         else:
-            axes[1, 0].text(0.5, 0.5, 'No presence ratio data', ha='center',
-                            va='center', transform=axes[1, 0].transAxes)
-            axes[1, 0].set_title('Presence Ratio Distribution')
+            axes[1, 0].text(
+                0.5,
+                0.5,
+                "No presence ratio data",
+                ha="center",
+                va="center",
+                transform=axes[1, 0].transAxes,
+            )
+            axes[1, 0].set_title("Presence Ratio Distribution")
     else:
-        axes[1, 0].text(0.5, 0.5, 'Presence ratio not available', ha='center',
-                        va='center', transform=axes[1, 0].transAxes)
-        axes[1, 0].set_title('Presence Ratio Distribution')
+        axes[1, 0].text(
+            0.5,
+            0.5,
+            "Presence ratio not available",
+            ha="center",
+            va="center",
+            transform=axes[1, 0].transAxes,
+        )
+        axes[1, 0].set_title("Presence Ratio Distribution")
 
-    firing_data = quality_df['firing_rate'].dropna()
+    firing_data = quality_df["firing_rate"].dropna()
     if len(firing_data) > 0:
-        axes[1, 1].hist(firing_data, bins=20, alpha=0.7, color='gold',
-                        edgecolor='black')
-        axes[1, 1].set_xlabel('Firing Rate (Hz)')
-        axes[1, 1].set_ylabel('Count')
-        axes[1, 1].set_title('Firing Rate Distribution')
+        axes[1, 1].hist(
+            firing_data, bins=20, alpha=0.7, color="gold", edgecolor="black"
+        )
+        axes[1, 1].set_xlabel("Firing Rate (Hz)")
+        axes[1, 1].set_ylabel("Count")
+        axes[1, 1].set_title("Firing Rate Distribution")
         mean_firing = firing_data.mean()
-        axes[1, 1].axvline(mean_firing, color='red', linestyle='--',
-                          label=f'Mean: {mean_firing:.2f} Hz')
+        axes[1, 1].axvline(
+            mean_firing,
+            color="red",
+            linestyle="--",
+            label=f"Mean: {mean_firing:.2f} Hz",
+        )
         axes[1, 1].legend()
     else:
-        axes[1, 1].text(0.5, 0.5, 'No firing rate data', ha='center', va='center',
-                        transform=axes[1, 1].transAxes)
-        axes[1, 1].set_title('Firing Rate Distribution')
+        axes[1, 1].text(
+            0.5,
+            0.5,
+            "No firing rate data",
+            ha="center",
+            va="center",
+            transform=axes[1, 1].transAxes,
+        )
+        axes[1, 1].set_title("Firing Rate Distribution")
 
     plt.tight_layout()
-    plt.savefig(plot_path / "quality_metrics_distributions.png", dpi=300,
-                bbox_inches="tight")
+    plt.savefig(
+        plot_path / "quality_metrics_distributions.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
     plt.close()
     print(f"Saved: {plot_path / 'quality_metrics_distributions.png'}")
     print("-" * 40)
@@ -282,36 +339,38 @@ def plot_unit_locations_figure(waveforms, sorting, plot_path):
     try:
         plt.figure(figsize=(8, 12))
         plot_unit_locations(
-            waveforms,
-            unit_ids=sorting.get_unit_ids(),
-            with_channel_ids=False
+            waveforms, unit_ids=sorting.get_unit_ids(), with_channel_ids=False
         )
         plt.title("Unit Locations on Probe", fontsize=16)
         plt.tight_layout()
-        plt.savefig(plot_path / "unit_locations.png", dpi=300,
-                    bbox_inches="tight")
+        plt.savefig(
+            plot_path / "unit_locations.png", dpi=300, bbox_inches="tight"
+        )
         plt.close()
         print(f"Saved: {plot_path / 'unit_locations.png'}")
     except Exception as e:
-        print(f"⚠️  Could not use plot_unit_locations, creating simple scatter plot: {e}")
+        print(
+            f"⚠️  Could not use plot_unit_locations, creating simple scatter plot: {e}"
+        )
         plt.figure(figsize=(8, 12))
         channel_locations = waveforms.get_channel_locations()
         unit_ids = sorting.get_unit_ids()
-        for unit_id in unit_ids[:min(50, len(unit_ids))]:
+        for unit_id in unit_ids[: min(50, len(unit_ids))]:
             try:
                 template = waveforms.get_template(unit_id)
                 peak_channel_idx = np.argmax(np.abs(template))
                 if peak_channel_idx < len(channel_locations):
                     x, y = channel_locations[peak_channel_idx]
-                    plt.scatter(x, y, c='red', s=20, alpha=0.7)
+                    plt.scatter(x, y, c="red", s=20, alpha=0.7)
             except:
                 continue
         plt.xlabel("x (µm)")
         plt.ylabel("y (µm)")
         plt.title("Unit Locations on Probe (Simplified)")
         plt.tight_layout()
-        plt.savefig(plot_path / "unit_locations.png", dpi=300,
-                    bbox_inches="tight")
+        plt.savefig(
+            plot_path / "unit_locations.png", dpi=300, bbox_inches="tight"
+        )
         plt.close()
         print(f"Saved: {plot_path / 'unit_locations.png'}")
     print("-" * 40)
@@ -331,14 +390,15 @@ def plot_autocorrelograms_figure(sorting, plot_path):
             unit_ids=[unit_id],
             axes=axes[i],
             bin_ms=1.0,
-            window_ms=50.0
+            window_ms=50.0,
         )
-        axes[i].set_title(f'Unit {unit_id}')
+        axes[i].set_title(f"Unit {unit_id}")
 
     plt.suptitle("Autocorrelograms", fontsize=16)
     plt.tight_layout()
-    plt.savefig(plot_path / "autocorrelograms.png", dpi=300,
-                bbox_inches="tight")
+    plt.savefig(
+        plot_path / "autocorrelograms.png", dpi=300, bbox_inches="tight"
+    )
     plt.close()
     print(f"Saved: {plot_path / 'autocorrelograms.png'}")
     print("-" * 40)
@@ -348,36 +408,56 @@ def print_detailed_results_table(quality_df):
     """Print detailed results table."""
     print("DETAILED RESULTS TABLE")
     print("-" * 40)
-    print("Unit ID | SNR | ISI Violations | Presence Ratio | Firing Rate | Num Spikes")
+    print(
+        "Unit ID | SNR | ISI Violations | Presence Ratio | Firing Rate | Num Spikes"
+    )
     print("-" * 70)
 
     available_columns = quality_df.columns.tolist()
 
     for _, row in quality_df.iterrows():
         try:
-            if 'unit_id' in available_columns:
-                unit_id = row['unit_id']
-            elif 'unit' in available_columns:
-                unit_id = row['unit']
+            if "unit_id" in available_columns:
+                unit_id = row["unit_id"]
+            elif "unit" in available_columns:
+                unit_id = row["unit"]
             else:
                 unit_id = "N/A"
 
-            snr = row.get('snr', float('nan'))
-            isi_viol = row.get('isi_violations_ratio', float('nan'))
-            presence = row.get('presence_ratio', float('nan'))
-            firing_rate = row.get('firing_rate', float('nan'))
-            num_spikes = row.get('num_spikes', 0)
+            snr = row.get("snr", float("nan"))
+            isi_viol = row.get("isi_violations_ratio", float("nan"))
+            presence = row.get("presence_ratio", float("nan"))
+            firing_rate = row.get("firing_rate", float("nan"))
+            num_spikes = row.get("num_spikes", 0)
 
             snr_str = f"{snr:5.2f}" if not pd.isna(snr) else "  NaN"
-            isi_str = f"{isi_viol:13.3f}" if not pd.isna(isi_viol) else "          NaN"
-            presence_str = f"{presence:13.3f}" if not pd.isna(presence) else "          NaN"
-            firing_str = f"{firing_rate:10.2f}" if not pd.isna(firing_rate) else "      NaN"
+            isi_str = (
+                f"{isi_viol:13.3f}"
+                if not pd.isna(isi_viol)
+                else "          NaN"
+            )
+            presence_str = (
+                f"{presence:13.3f}"
+                if not pd.isna(presence)
+                else "          NaN"
+            )
+            firing_str = (
+                f"{firing_rate:10.2f}"
+                if not pd.isna(firing_rate)
+                else "      NaN"
+            )
             try:
                 spikes_str = f"{int(num_spikes):9d}"
             except (ValueError, TypeError):
-                spikes_str = f"{num_spikes:9.0f}" if not pd.isna(num_spikes) else "      NaN"
+                spikes_str = (
+                    f"{num_spikes:9.0f}"
+                    if not pd.isna(num_spikes)
+                    else "      NaN"
+                )
 
-            print(f"{unit_id:7} | {snr_str} | {isi_str} | {presence_str} | {firing_str} | {spikes_str}")
+            print(
+                f"{unit_id:7} | {snr_str} | {isi_str} | {presence_str} | {firing_str} | {spikes_str}"
+            )
 
         except Exception as e:
             print(f"Error processing row: {e}")
@@ -390,18 +470,17 @@ def main():
         description="View SpikeInterface sorting results from a results folder"
     )
     parser.add_argument(
-        "results_path",
-        help="Path to the sorting results folder"
+        "results_path", help="Path to the sorting results folder"
     )
     parser.add_argument(
         "--no-plots",
         action="store_true",
-        help="Skip generating plots, only print statistics"
+        help="Skip generating plots, only print statistics",
     )
     parser.add_argument(
         "--show-plots",
         action="store_true",
-        help="Show plots interactively (in addition to saving them)"
+        help="Show plots interactively (in addition to saving them)",
     )
 
     args = parser.parse_args()
@@ -430,7 +509,9 @@ def main():
             try:
                 plot_quality_metrics_distributions(quality_df, plot_path)
             except Exception as e:
-                print(f"Warning: Could not generate quality metrics distributions: {e}")
+                print(
+                    f"Warning: Could not generate quality metrics distributions: {e}"
+                )
 
             try:
                 plot_unit_locations_figure(waveforms, sorting, plot_path)
@@ -449,7 +530,9 @@ def main():
 
         print("FILES SAVED")
         print("-" * 40)
-        quality_path = Path(args.results_path) / 'postprocessing' / 'quality_metrics.csv'
+        quality_path = (
+            Path(args.results_path) / "postprocessing" / "quality_metrics.csv"
+        )
         print(f"Quality metrics: {quality_path}")
         print(f"Sorting results: {Path(args.results_path) / 'sorting'}")
         print(f"Waveforms: {Path(args.results_path) / 'postprocessing'}")

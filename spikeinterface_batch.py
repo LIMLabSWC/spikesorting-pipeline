@@ -13,8 +13,10 @@ import xml.etree.ElementTree as ET
 from spikeinterface import extract_waveforms
 from spikeinterface.extractors import read_openephys
 from spikeinterface.preprocessing import (
-    phase_shift, bandpass_filter, common_reference,
-    scale_to_physical_units
+    phase_shift,
+    bandpass_filter,
+    common_reference,
+    scale_to_physical_units,
 )
 from spikeinterface.sorters import run_sorter
 from spikeinterface.qualitymetrics import compute_quality_metrics
@@ -22,18 +24,32 @@ from spikeinterface import curation
 from spikeinterface.widgets import plot_traces
 from probeinterface.plotting import plot_probe
 
+
 def get_scaled_recording(recording):
     return scale_to_physical_units(recording)
+
 
 # ---------------------------
 # Argument Parsing
 # ---------------------------
 
-parser = argparse.ArgumentParser(description="SpikeInterface SLURM-compatible pipeline with Kilosort 4")
+parser = argparse.ArgumentParser(
+    description="SpikeInterface SLURM-compatible pipeline with Kilosort 4"
+)
 parser.add_argument("data_path", help="Path to the Open Ephys recording folder")
-parser.add_argument("--output_path", default="./spike_sorting_output", help="Output directory for results")
-parser.add_argument("--show_probe", action="store_true", help="Plot probe layout")
-parser.add_argument("--show_preprocessing", action="store_true", help="Plot preprocessing traces")
+parser.add_argument(
+    "--output_path",
+    default="./spike_sorting_output",
+    help="Output directory for results",
+)
+parser.add_argument(
+    "--show_probe", action="store_true", help="Plot probe layout"
+)
+parser.add_argument(
+    "--show_preprocessing",
+    action="store_true",
+    help="Plot preprocessing traces",
+)
 args = parser.parse_args()
 
 # ---------------------------
@@ -97,7 +113,9 @@ else:
     recording_for_filter = raw_recording
     print("Skipped phase shift.")
 
-filtered_recording = bandpass_filter(recording_for_filter, freq_min=300, freq_max=6000)
+filtered_recording = bandpass_filter(
+    recording_for_filter, freq_min=300, freq_max=6000
+)
 
 channel_group = filtered_recording.get_property("group")
 channel_ids = filtered_recording.get_channel_ids()
@@ -140,7 +158,9 @@ if args.show_preprocessing:
     plt.title("Preprocessed Signal Map")
     plt.grid(axis="y", linestyle="--", linewidth=0.3, alpha=0.4)
     plt.tight_layout()
-    plt.savefig(plot_path / "preprocessing_full.png", dpi=200, bbox_inches="tight")
+    plt.savefig(
+        plot_path / "preprocessing_full.png", dpi=200, bbox_inches="tight"
+    )
     plt.close()
 
 # ---------------------------
@@ -148,7 +168,9 @@ if args.show_preprocessing:
 # ---------------------------
 
 print("Running Kilosort 4...")
-preprocessed_recording.set_property("group", np.zeros(len(channel_ids), dtype=int))
+preprocessed_recording.set_property(
+    "group", np.zeros(len(channel_ids), dtype=int)
+)
 sorting = run_sorter(
     "kilosort4",
     preprocessed_recording,
@@ -187,6 +209,8 @@ print("Computing quality metrics...")
 quality_metrics = compute_quality_metrics(waveforms)
 quality_metrics.to_csv(output_path / "postprocessing" / "quality_metrics.csv")
 
-print("Done. Quality metrics saved to:",
-      output_path / "postprocessing" / "quality_metrics.csv")
+print(
+    "Done. Quality metrics saved to:",
+    output_path / "postprocessing" / "quality_metrics.csv",
+)
 print("All plots saved to:", plot_path)
