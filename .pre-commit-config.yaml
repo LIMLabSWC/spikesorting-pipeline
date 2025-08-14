@@ -1,23 +1,31 @@
+# Pre-commit configuration for spike sorting pipeline
+# This ensures code quality and consistent formatting across the project
+
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-added-large-files
-      - id: check-merge-conflict
+    # Basic file and code quality checks
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v5.0.0  # Updated from v4.4.0
+      hooks:
+          - id: check-docstring-first      # Ensure docstrings come before code
+          - id: check-executables-have-shebangs  # Check that executable files have proper shebangs
+          - id: check-merge-conflict       # Prevent committing files with merge conflicts
+          - id: check-toml                 # Validate TOML files
+          - id: end-of-file-fixer          # Ensure files end with newline
+          - id: mixed-line-ending          # Standardize line endings to LF
+            args: [--fix=lf]
+          - id: requirements-txt-fixer     # Sort requirements.txt files
+          - id: trailing-whitespace        # Remove trailing whitespace
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.10.0
-    hooks:
-      - id: ruff-format
-        args: [--line-length=80]
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+    # Fast Python linter and formatter (replaces multiple tools)
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.12.7  # Updated from v0.10.0
+      hooks:
+        - id: ruff  # Handles both linting and formatting
+          args: [--line-length=80]  # Enforce 80-character line length
 
-  - repo: https://github.com/psf/black
-    rev: 24.2.0
-    hooks:
-      - id: black
-        args: [--line-length=80]
+    # Opinionated Python code formatter
+    - repo: https://github.com/psf/black
+      rev: 25.1.0  # Updated from 24.2.0
+      hooks:
+          - id: black
+            args: [--line-length=80]  # Enforce 80-character line length
