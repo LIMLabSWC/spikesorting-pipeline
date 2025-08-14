@@ -22,7 +22,6 @@ from spikeinterface.widgets import (
     plot_unit_templates,
     plot_rasters,
     plot_autocorrelograms,
-    plot_crosscorrelograms,
     plot_unit_locations,
 )
 
@@ -125,8 +124,7 @@ def print_summary_statistics(sorting, quality_df):
             print("Mean presence ratio: NaN (check quality metrics)")
         else:
             print(
-                f"Mean presence ratio: {presence_mean:.3f} ± "
-                f"{presence_std:.3f}"
+                f"Mean presence ratio: {presence_mean:.3f} ± {presence_std:.3f}"
             )
     else:
         print("Presence ratio not available in quality metrics")
@@ -142,8 +140,7 @@ def print_summary_statistics(sorting, quality_df):
             (quality_df["snr"] > 5) & (quality_df["isi_violations_ratio"] < 0.1)
         ]
     print(
-        f"High-quality units (SNR>5, ISI<0.1, presence>0.8): "
-        f"{len(good_units)}"
+        f"High-quality units (SNR>5, ISI<0.1, presence>0.8): {len(good_units)}"
     )
     print("-" * 40)
 
@@ -362,7 +359,7 @@ def plot_unit_locations_figure(waveforms, sorting, plot_path):
                 if peak_channel_idx < len(channel_locations):
                     x, y = channel_locations[peak_channel_idx]
                     plt.scatter(x, y, c="red", s=20, alpha=0.7)
-            except:
+            except Exception:
                 continue
         plt.xlabel("x (µm)")
         plt.ylabel("y (µm)")

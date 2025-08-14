@@ -205,11 +205,12 @@ dependencies:
   - zipp=3.23.0=pyhd8ed1ab_0
   - zstd=1.5.7=hb8e6e7a_2
   - pip:
-    - black==25.1.0
+    - black==24.2.0
     - ipykernel==6.30.1
     - kilosort==4.1.0
-    - pre_commit==4.3.0
+    - pre_commit==4.2.0
     - rich==14.1.0
+    - ruff==0.12.8
     - spikeinterface==0.103.0
 
 prefix: "/nfs/nhome/live/vplattner/micromamba/envs/si_ks4_env"

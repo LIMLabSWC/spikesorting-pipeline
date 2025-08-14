@@ -25,8 +25,6 @@ import matplotlib.pyplot as plt  # Plotting library for creating figures
 import xml.etree.ElementTree as ET  # Parse XML files (for Open Ephys settings)
 
 # Error handling and debugging
-import traceback  # Extract, format and print stack traces
-import rich.traceback  # Pretty traceback formatting (if available)
 
 # SpikeInterface core functionality
 from spikeinterface import (
@@ -49,12 +47,10 @@ from spikeinterface import (
     curation,
 )  # Manual curation tools (remove bad units/spikes)
 from spikeinterface.widgets import (
-    plot_timeseries,
     plot_traces,
 )  # Visualization widgets
 
 # Probe geometry handling
-from probeinterface.plotting import plot_probe  # Plot probe layouts
 
 
 def get_scaled_recording(recording):
@@ -172,7 +168,7 @@ print(f"📂 Loading from: {data_path}")
 # Load the Open Ephys recording - stream_id="0" refers to the first data stream
 # Open Ephys can have multiple streams (e.g., continuous data, events, etc.)
 raw_recording = read_openephys(data_path, stream_id="0")
-print(f"✅ Recording loaded successfully")
+print("✅ Recording loaded successfully")
 print(
     f"Recording dtype: {raw_recording.get_dtype()}"
 )  # Data type (usually int16 or float32)
@@ -220,8 +216,6 @@ print("ATTACHING PROBE GEOMETRY")
 print("-" * 40)
 
 # Import probe interface classes for creating proper probe objects
-from probeinterface import Probe, ProbeGroup
-from probeinterface.plotting import plot_probe
 
 # Check if probe geometry is already attached to the recording
 if "location" not in raw_recording.get_property_keys():
