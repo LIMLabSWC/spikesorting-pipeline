@@ -323,6 +323,7 @@ cbar = plt.colorbar(sm, ax=ax, label="Signal Variance (µV²)")
 
 plt.tight_layout()
 plt.savefig(plot_path / "probe_layout_colored.png", dpi=300)
+plt.show()
 plt.close()
 print(f"💾 Saved probe layout to: {plot_path / 'probe_layout_colored.png'}")
 
@@ -418,6 +419,7 @@ plt.title("Preprocessed Signal Map")
 plt.grid(axis="y", linestyle="--", linewidth=0.3, alpha=0.4)
 plt.tight_layout()
 plt.savefig(plot_path / "preprocessing_full.png", dpi=200, bbox_inches="tight")
+plt.show()
 plt.close()
 print(
     f"💾 Saved preprocessed signal map to: {plot_path / 'preprocessing_full.png'}"
@@ -455,6 +457,7 @@ plt.xlabel("RMS (µV)")
 plt.ylabel("Count")
 plt.tight_layout()
 plt.savefig(plot_path / "rms_histogram.png", dpi=200)
+plt.show()
 plt.close()
 print(f"💾 Saved RMS histogram to: {plot_path / 'rms_histogram.png'}")
 print("-" * 40)
@@ -479,7 +482,7 @@ print("-" * 40)
 # for channel grouping. This is mainly used to handle multi-shank probes
 # or multiple probes by sorting them separately.
 #
-# In your case (a single-shank Neuropixels probe), all channels come from
+# In our case (a single-shank Neuropixels probe), all channels come from
 # one shank, so no grouping is needed. However, Kilosort4 still expects
 # the 'group' field to exist.
 #
