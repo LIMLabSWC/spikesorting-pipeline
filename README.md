@@ -12,6 +12,14 @@ cd spikesorting-pipeline
 ```
 
 ### 1. Setup Environment
+
+You can set up the environment with any of these tools:
+- [Conda](https://docs.conda.io/en/latest/)
+- [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+- [Mamba](https://mamba.readthedocs.io/en/latest/)
+- [Micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html)
+
+
 ```bash
 # On HPC
 micromamba create -n si_ks4_env -f si_ks4_env.yml
@@ -35,8 +43,8 @@ python view_sorting_results.py /path/to/sorting/results
 ### 4. Manual Curation (Optional)
 ```bash
 # Install Phy
-conda create -n phy2 -y python=3.11 cython dask h5py joblib matplotlib numpy pillow pip pyopengl pyqt pyqtwebengine pytest python qtconsole requests responses scikit-learn scipy traitlets
-conda activate phy2
+micromamba create -n phy2 -y python=3.11 cython dask h5py joblib matplotlib numpy pillow pip pyopengl pyqt pyqtwebengine pytest python qtconsole requests responses scikit-learn scipy traitlets
+micromamba activate phy2
 pip install git+https://github.com/cortex-lab/phy.git
 
 # Launch GUI
@@ -186,10 +194,10 @@ Phy is an open-source Python library providing a graphical user interface for vi
 
 ```bash
 # Create new conda environment for Phy
-conda create -n phy2 -y python=3.11 cython dask h5py joblib matplotlib numpy pillow pip pyopengl pyqt pyqtwebengine pytest python qtconsole requests responses scikit-learn scipy traitlets
+micromamba create -n phy2 -y python=3.11 cython dask h5py joblib matplotlib numpy pillow pip pyopengl pyqt pyqtwebengine pytest python qtconsole requests responses scikit-learn scipy traitlets
 
 # Activate environment
-conda activate phy2
+micromamba activate phy2
 
 # Install Phy development version
 pip install git+https://github.com/cortex-lab/phy.git
@@ -202,8 +210,8 @@ pip install klusta klustakwik2
 
 ```bash
 # If the above method has issues, try the automatic install
-conda env create -f environment.yml
-conda activate phy2
+micromamba env create -f environment.yml
+micromamba activate phy2
 pip install git+https://github.com/cortex-lab/phy.git
 ```
 
