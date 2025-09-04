@@ -39,7 +39,11 @@ from spikeinterface.preprocessing import (
     common_reference,  # Remove common noise across channels
     scale_to_physical_units,  # Convert to proper voltage units (µV)
 )
-from spikeinterface.sorters import run_sorter  # Run spike sorting algorithms
+from spikeinterface.sorters import (
+    # get_default_sorter_params,
+    run_sorter,
+    # get_sorter_params_description,
+)  # Run spike sorting algorithms
 from spikeinterface.qualitymetrics import (
     compute_quality_metrics,
 )  # Calculate quality metrics
